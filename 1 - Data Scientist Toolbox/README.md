@@ -1,7 +1,7 @@
 Data Scientist Toolbox
 ===================
 
-* Overview of ersion control, markdown, git, GitHub
+* Overview of version control, markdown, git, GitHub
 * R and RStudio installation
 
 
