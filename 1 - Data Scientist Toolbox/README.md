@@ -1,4 +1,5 @@
-datasciencecoursera
+Data Scientist Toolbox
 ===================
 
-Data science course using R
+*created github account
+*set up R
