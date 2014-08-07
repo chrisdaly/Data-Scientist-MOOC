@@ -1,5 +1,8 @@
 Data Scientist Toolbox
 ===================
 
-* created github account
-* set up R
+* Learn about version control, markdown, git, GitHub
+* Set up R, and RStudio
+
+
+ 
