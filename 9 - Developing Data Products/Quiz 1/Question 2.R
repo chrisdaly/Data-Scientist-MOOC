@@ -1,0 +1,1 @@
+dTable(airquality, sPaginationType = "full_numbers")
