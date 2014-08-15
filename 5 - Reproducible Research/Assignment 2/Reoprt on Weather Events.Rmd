@@ -1,0 +1,59 @@
+# Report on the effects of severe weather events
+
+### Synopsis
+Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern.
+
+This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
+
+### Libraries
+The following libraries were used throughout the code.
+```{r}
+library(lattice)
+library(knitr)
+library(xtable)
+```
+```{r setoptions, echo = FALSE}
+opts_chunk$set(eval = TRUE)
+```
+
+### Loading and preprocessing the data
+A zip file contatining the data was downloaded from Amazon's cloudfront on the 11/08/2014 into a data folder in the working directory. The data was then loaded into R.
+
+```{r, eval = FALSE}
+# check if a data folder exists; if not then create one
+if (!file.exists("data")) {dir.create("data")}
+
+# file URL and destination file
+fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+destfile <- "./data/stormdata.zip"
+
+# download the file and note the time
+download.file(fileUrl, destfile = destfile)
+dateDownloaded <- date()
+
+# from the zip file, read out the containing csv file
+data_ <- read.csv(unz(destfile, "stormdata.csv"))
+
+```
+### Data processing
+
+
+### Results
+
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
