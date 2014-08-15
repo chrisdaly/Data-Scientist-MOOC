@@ -21,7 +21,7 @@ The data and labels were loaded into R. The identifier column names were given m
 - tBodyAcc-mean-X   
 - fBodyAcc-std-Z
 
-The test and training data sets were merged together into a single data frame and then filtered by searching the column names for "std" and "mean". These filtered columns were combined with the identifier columns to create a new data frame. 
+The next step was to create a summarising data frame that displayed only mean and standard deviation data. The test and training data sets were merged together into a single data frame and then filtered by searching the column names for "std" and "mean". These filtered columns were combined with the identifier columns to create a new data frame. 
 
 The numeric labels for activities were converted to descriptive ones using the map values function and activity_labels text file. They were then tidied up by changing the characters to lower case and replacing underscores with spaces which produced the following labels.
 

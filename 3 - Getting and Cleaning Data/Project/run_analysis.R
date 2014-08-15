@@ -65,4 +65,4 @@ DF_tidy$participant <- NULL; DF_tidy$activity <- NULL
 names(DF_tidy)[1] <- "participant"; names(DF_tidy)[2] <- "activity"
 
 # write out the dataframe into a file
-write.table(file = "activitydata.txt", x = DF_tidy)
+write.table(file = "activitydata.txt", x = DF_tidy, row.name = FALSE)

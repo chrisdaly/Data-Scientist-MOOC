@@ -78,3 +78,4 @@ hail <-
 # Problems
 # need to figure out how to properly unzip : https://rpubs.com/jcoutocoursera/24829
 # https://rpubs.com/lytemar/24793
+  # https://rpubs.com/hamelsmu/24950
