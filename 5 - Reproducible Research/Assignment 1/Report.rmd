@@ -1,6 +1,6 @@
 ---
 title: "Report on personal activity patterns"
-author: "Chris"
+author: "Chris Daly"
 date: "Monday, August 11, 2014"
 output: html_document
 ---

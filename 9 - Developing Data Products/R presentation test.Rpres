@@ -1,0 +1,35 @@
+R presentation test
+========================================================
+author: Chris Daly
+date: 17/08/2014
+
+First Slide
+========================================================
+
+For more details on authoring R presentations click the
+**Help** button on the toolbar.
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+asd $x^2$
+
+
+Slide With Code
+========================================================
+transition: rotate
+font-family: calibri
+
+Test
+
+```{r}
+summary(cars)
+```
+
+Slide With Plot
+========================================================
+transition: rotate
+```{r, echo=FALSE}
+plot(cars)
+```
