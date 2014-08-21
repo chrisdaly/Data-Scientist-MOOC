@@ -1,0 +1,44 @@
+```{r, echo = FALSE}
+library(knitr)
+library(ggplot2)
+```
+
+```{r setoptions, echo = FALSE}
+opts_chunk$set(eval = TRUE)
+opts_chunk$set(echo = FALSE)
+opts_chunk$set(fig.height = 3.5)
+```
+
+The response is the length of teeth in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).
+
+```{r}
+par(mfrow = c(1,2))
+
+p1 <- ggplot(ToothGrowth, aes(x = factor(dose), y = len, fill = factor(dose))) 
+p1 + geom_boxplot() + guides(fill=FALSE) + facet_grid(. ~ supp)
+
+```
+
+After plotting the data as boxplots a number of correlations were observed. The length of the tooth increases as the dosage increases. The OJ delivery method yields a greater length than the VC (approximately 10mm) for smaller dosages but the difference is negligable by a 2mg dosage.
+
+
+Load the ToothGrowth data and perform some basic exploratory data analyses 
+
+Provide a basic summary of the data.
+
+The tooth growth was compared by supplement and dosage under the null hypothesis that they have equal effect on the tooth.
+
+$H_0: \mu_0 = \mu$
+
+
+
+
+
+
+
+Use confidence intervals and hypothesis tests to compare tooth growth by supp and dose. (Use the techniques from class even if there's other approaches worth considering)
+State your conclusions and the assumptions needed for your conclusions.
+
+
+assumption:
+same variance

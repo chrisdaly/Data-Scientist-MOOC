@@ -1,0 +1,92 @@
+```{r, echo = FALSE}
+library(knitr)
+library(plotrix)
+```
+Each simulation used a rate parameter $\lambda = 0.2$ used to produce n = 40 random variables. The mean & standard deviation of the 40 values were then calculated 10,000 times.
+
+```{r setoptions, echo = FALSE}
+opts_chunk$set(eval = TRUE)
+opts_chunk$set(echo = FALSE)
+opts_chunk$set(fig.height = 3.5)
+```
+```{r echo = TRUE}
+set.seed(1230); lambda <- .2; n <- 40; no_sim <- 10000
+mean_values <- NULL; mean_sds <- NULL
+for (i in 1:no_sim){
+  values <- rexp(n, lambda); means <- mean(values); sds <- sd(values)
+  mean_values  <- c(mean_values, means); mean_sds <- c(mean_sds, sds)
+}
+avg <- mean(mean_values); s <- sd(mean_values)
+```
+
+The expected value for an exponential distribution is $\mathbb{E}[X] = 1 / lambda$ which is equal to 5 in this case. The mean for the experiment was calculated to be 5.00. As expected, due to the CLT, the expected value of the sample mean is equal to the mean it's trying to estimate. The distribution of the sample mean is gausian, centered at 5 & concentrated at the center as shown below.
+
+```{r, echo = FALSE}
+avg
+```
+```{r}
+myhist <- hist(mean_values , freq = FALSE, xlim = c(2, 8), ylim = c(0, .55), 
+               breaks = 25, main = paste("Probability density function for", no_sim, "simulations"), 
+               xlab = "Values")
+
+abline(v = avg , col = "steelblue", lwd = 3, lty = 2)
+abline(v = 5, col = "red", lwd = 3, lty = 9)
+
+x <- seq(min(mean_values ), max(mean_values ), length = 100) 
+y <- dnorm(x, mean = avg, sd = s)
+curve(dnorm(x, mean = avg, sd = s), 
+      col = "gray", lwd = 3, lty = 3, add = TRUE)
+
+legend('topright', c("Expected value", "Actual mean", "Normal distribution"), 
+       lty=1, col=c('red', 'steelblue', "gray"), bty='n', cex=.75)
+```
+
+Next, the variance of the sample mean was worked out to be 0.80. This corresponds with the standard error of the mean(i.e. $SE = sigma /\sqrt{n}$) which is equal to 0.79 for the 40 observations. 
+```{r}
+s
+```
+
+A Q-Q plot of the mean values was plotted below. There is little deviation between the actual quantile values & the theoretical; this indicates aggregated sample distribution is indeed normal.
+
+```{r,  echo == FALSE}
+qqnorm(mean_values, col = "lightskyblue1")
+qqline(mean_values)
+```
+
+The 95% confidence interval of each simulation was worked out using each simulation's own standard deviaton and mean according to the equation $\bar{X} \pm 1.96 sigma/\sqrt{n}$. The coverage was computed as the percent of times the true mean fell within each interval's confidence interval.
+
+```{r, echo = TRUE}
+upper <- mean_values +  1.96 * (mean_sds/sqrt(n))
+lower <- mean_values -  1.96 * (mean_sds/sqrt(n))
+sum(lower < 5 & 5 < upper)/no_sim * 100
+```
+For visualization purposes, an extra experiment for 100 simulations was run & the confidence interval for each simulation was plotted.
+
+```{r}
+set.seed(1230)
+# rerun for no_sim <- 100
+no_sim <- 100
+
+mean_values <- NULL; mean_sds <- NULL
+
+for (i in 1:no_sim){
+  # calculate the mean & sd of all the sample means
+  values <- rexp(n, lambda)
+  means <- mean(values); sds <- sd(values)
+  mean_values  <- c(mean_values, means); mean_sds <- c(mean_sds, sds)
+}
+# construct 95% confidence interval for each simulation
+upper <- mean_values +  1.96 * (mean_sds/sqrt(n))
+lower <- mean_values -  1.96 * (mean_sds/sqrt(n))
+# sum(lower < 5 & 5 < upper)/no_sim * 100
+
+index <- c(1:no_sim)
+
+plot(index, upper, ylim = c(0, 10), type = "n", xlab = "Index", ylab = "Mean", 
+     main = "Plot of confidence interval coverage for 100 simulations")
+
+segments(index, upper, index, lower, col = "steelblue", lwd = 3)
+#ablineclip(h = 5, col = "red", lwd = 2, lty = 2)
+text(-8, 5, expression(paste("", mu, "")), cex = 1.5)
+ablineclip(h=5, x1 = -2.5, lty = 2, col="red")
+```

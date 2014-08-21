@@ -6,3 +6,13 @@
 # Assuming normality of the underlying data and a common population variance, give a pvalue for a two sided t test.
 
 
+mean.diff = -3-1
+df = (9 + 9 - 2)
+m_tr = -3
+m_pb = 1
+s_tr = 1.5
+s_pb = 1.8
+pooled.var = (s_tr^2 * 9 + s_pb^2 * 9)/df
+se.diff = sqrt(pooled.var/9 + pooled.var/9)
+t.obt = mean.diff / se.diff
+t.obt
