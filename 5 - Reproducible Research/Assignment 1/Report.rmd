@@ -2,7 +2,9 @@
 title: "Report on personal activity patterns"
 author: "Chris Daly"
 date: "Monday, August 11, 2014"
-output: html_document
+output:
+  html_document:
+    theme: spacelab
 ---
 
 ## Introduction
@@ -12,10 +14,11 @@ This report makes use of data from a personal activity monitoring device. This d
 
 ### Libraries
 The following libraries were used throughout the code.
-```{r}
-library(lattice)
+```{r, echo = FALSE}
 library(knitr)
+library(lattice)
 library(xtable)
+
 ```
 ```{r setoptions, echo = FALSE}
 opts_chunk$set(eval = TRUE)

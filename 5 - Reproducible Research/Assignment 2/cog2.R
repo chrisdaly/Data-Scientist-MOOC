@@ -3,6 +3,9 @@ Weather impact on Health and Economic damage
 
 data <- read.table("repdata-data-StormData.csv", quote='"', sep =',', header=TRUE, row.names=NULL)
 
+data <- read.csv("./data/stormdata.zip.out", nrows = 2000)
+
+
 mul <- function(damage, exp){
   if(toupper(exp)=="K"){
     as.numeric(damage)*1000

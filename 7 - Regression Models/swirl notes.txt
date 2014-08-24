@@ -1,0 +1,1211 @@
+LESSON 1
+###################
+
+In our plot we used the R function "jitter" on the children's
+| heights to highlight heights that occurred most frequently. The dark spots in each column rise from left to right
+| suggesting that children's heights do depend on their parents'. Tall parents have tall children and short parents have
+| short children.
+
+plot(child ~ parent, galton)
+
+
+You'll notice that this plot looks a lot different than the original we displayed. Why? Many people are the same height
+| to within measurement error, so points fall on top of one another. You can see that some circles appear darker than
+| others. However, by using R's function "jitter" on the children's heights, we can spread out the data to simulate the
+| measurement errors and make high frequency heights more visible.
+
+
+plot(jitter(child, 4) ~ parent, galton)
+
+regrline <- lm(child ~ parent, galton)
+
+abline(regrline, lwd = 3, col = "red")
+summary(regrline)
+
+A coefficient will be within 2 standard errors of its estimate about 95% of the time. This means the slope of our
+| regression is significantly different than either 0 or 1 since (.64629) +/- (2*.04114) is near neither 0 nor 1.
+
+LESSON 2
+###################
+
+The first equation says that the "errors" in our estimates, the residuals, have mean zero. In other words, the
+| residuals are "balanced" among the data points; they're just as likely to be positive as negative. The second equation
+| says that our residuals must be uncorrelated with our predictors, the parentsâ???T height. This makes sense - if the
+| residuals and predictors were correlated then you could make a better prediction and reduce the distances (residuals)
+| between the actual outcomes and the predictions.
+
+[if there is a pattern in the residuals then there should be a better regression line]
+
+
+First check the mean of fit$residuals to see if it's close to 0.
+mean(fit$residuals)
+
+Now check the correlation between the residuals and the predictors.
+| Type "cov(fit$residuals, galton$parent)" to see if it's close to 0.
+cov(fit$residuals, galton$parent)
+
+intercept <- fit$coef[1]
+slope <- fit$coef[2]
+
+
+var(data)=var(estimate)+var(residuals), shows that the variance of the estimate is ALWAYS less than the variance of the data.
+
+
+variance of residuals is always less that the variance of the data
+
+Earthquake example:
+
+efit <- lm(accel ~ mag+dist, attenu)
+
+Using the R function cov verify the residuals are uncorrelated with
+the magnitude predictor, attenu$mag.
+cov(efit$residuals, attenu$mag)
+cov(efit$residuals, attenu$dist)
+
+LESSON 3
+###################
+
+Recall that you normalize data by subtracting its mean and dividing by its standard deviation. We've done this for the galton child and parent data for
+| you. We've stored these normalized values in two vectors, gpa_nor and gch_nor, the normalized galton parent and child data.
+
+
+LESSON 4
+###################
+
+| As shown in the slides, residuals are useful for indicating how well data points fit a statistical model. They "can be thought of as the outcome (Y)
+| with the linear association of the predictor (X) removed. One differentiates residual variation (variation after removing the predictor) from systematic
+
+| It can also be shown that, given a model, the maximum likelihood estimate of the variance of the random error is the average squared residual. However,
+| since our linear model with one predictor requires two parameters we have only (n-2) degrees of freedom. Therefore, to calculate an "average" squared
+| residual to estimate the variance we use the formula 1/(n-2) * (the sum of the squared residuals). If we divided the sum of the squared residuals by n,
+| instead of n-2, the result would give a biased estimate.
+
+ First, we'll use the residuals (fit$residuals) of our model to estimate the standard deviation (sigma) of the error. We've already defined n for you as
+| the number of points in Galton's dataset (928).
+sqrt(sum(fit$residuals^2)/(n-2))
+summary(fit)$sigma
+sqrt(deviance(fit)/(n-2))
+
+Total Variation = Residual Variation + Regression Variation
+
+The term R^2 represents the percent of total variation described by the model, the regression variation (the term we didn't ask about in the preceding
+| multiple choice questions). Also, since it is a percent we need a ratio or fraction of sums of squares. Let's do this now for our Galton data.
+
+We'll start with easy steps. Calculate the mean of the children's heights and store it in a variable called mu. Recall that we reference the childrens'
+| heights with the expression 'galton$child' and the parents' heights with the expression 'galton$parent'.
+
+> mu <- mean(galton$child)
+
+Recall that centering data means subtracting the mean from each data point. Now calculate the sum of the squares of the centered children's heights and
+| store the result in a variable called sTot. This represents the Total Variation of the data.
+sTot <- sum((galton$child - mu) ^ 2)
+
+Now create the variable sRes. Use the R function deviance to calculate the sum of the squares of the residuals. These are the distances between the
+| children's heights and the regression line. This represents the Residual Variation.
+sRes <- deviance(fit)
+
+
+inally, the ratio sRes/sTot represents the percent of total variation contributed by the residuals. To find the percent contributed by the model, i.e.,
+| the regression variation, subtract the fraction sRes/sTot from 1.  This is the value R^2.
+1- sRes/sTot
+summary(fit)$r.squared
+
+To see some real magic, compute the square of the correlation of the galton data, the children and parents. Use the R function cor.
+cor(galton$parent, galton$child)^2
+
+We'll now summarize useful facts about R^2. It is the percentage of variation explained by the regression model. As a percentage it is between 0 and 1.
+| It also equals the sample correlation squared. However, R^2 doesn't tell the whole story.
+
+LESSON 5
+###################
+In this lesson we'll illustrate that regression in many variables amounts to a series of regressions in one. Using regression in one variable, we'll
+| show how to eliminate any chosen regressor, thus reducing a regression in N variables, to a regression in N-1. Hence, if we know how to do a regression
+| in 1 variable, we can do a regression in 2. Once we know how to do a regression in 2 variables, we can do a regression in 3, and so on. We begin with
+| the galton data and a review of eliminating the intercept by subtracting the means.
+| When we perform a regression in one variable, such as lm(child ~ parent, galton), we get two coefficients, a slope and an intercept. The intercept is
+| really the coefficient of a special regressor which has the same value, 1, at every sample. The function, lm, includes this regressor by default.
+
+
+| We'll demonstrate by substituting an all-ones regressor of our own. This regressor must have the same number of samples as galton (928.) Create such an
+| object and name it ones, using ones <- rep(1, nrow(galton)), or some equivalent expression.
+
+> ones <- rep(1, nrow(galton))
+
+ The galton data has already been loaded. The default intercept can be excluded by using -1 in the formula. Perform a regression which substitutes our
+| regressor, ones, for the default using lm(child ~ ones + parent -1, galton). Since we want the result to print, don't assign it to a variable.
+> lm(child ~ ones + parent - 1, galton)
+
+| The coefficient of ones is 23.9415. Now use the default, lm(child ~ parent, galton), to show the intercept has the same value. This time, DO NOT
+| suppress the the intercept with -1.
+> lm(child ~ parent, galton)
+
+The regression in one variable given by lm(child ~ parent, galton) really involves two regressors, the variable, parent, and a regressor of all ones.
+
+| In earlier lessons we demonstrated that the regression line given by lm(child ~ parent, galton) goes through the point x=mean(parent), y=mean(child). We
+| also showed that if we subtract the mean from each variable, the regression line goes through the origin, x=0, y=0, hence its intercept is zero. Thus,
+| by subtracting the means, we eliminate one of the two regressors, the constant, leaving just one, parent. The coefficient of the remaining regressor is
+| the slope.
+
+ Subtracting the means to eliminate the intercept is a special case of a general technique which is sometimes called Gaussian Elimination. As it applies
+| here, the general technique is to pick one regressor and to replace all other variables by the residuals of their regressions against that one.
+
+Suppose, as claimed, that subtracting a variable's mean is a special case of replacing the variable with a residual. In this special case, it would be
+| the residual of a regression against what?
+3: The constant, 1
+
+The mean of a variable is the coefficient of its regression against the constant, 1. Thus, subtracting the mean is equivalent to replacing a variable by
+| the residual of its regression against 1. In an R formula, the constant regressor can be represented by a 1 on the right hand side. Thus, the
+| expression, lm(child ~ 1, galton), regresses child against the constant, 1. Recall that in the galton data, the mean height of a child was 68.09 inches.
+| Use lm(child ~ 1, galton) to compare the resulting coefficient (the intercept) and the mean height of 68.09. Since we want the result to print, don't
+| assign it a name.
+> lm(child ~ 1, galton)
+The mean of a variable is equal to its regression against the constant, 1.
+
+To illustrate the general case we'll use the trees data from the datasets package. The idea is to predict the Volume of timber which a tree might
+| produce from measurements of its Height and Girth. To avoid treating the intercept as a special case, we have added a column of 1's to the data which we
+| shall use in its place. Please take a moment to inspect the data using either View(trees) or head(trees).
+
+| A file of relevant code has been copied to your working directory and sourced. The file, elimination.R, should have appeared in your editor. If not,
+| please open it manually.
+
+| The general technique is to pick one predictor and to replace all other variables by the residuals of their regressions against that one. The function,
+| regressOneOnOne, in eliminate.R performs the first step of this process. Given the name of a predictor and one other variable, other, it returns the
+| residual of other when regressed against predictor. In its first line, labeled Point A, it creates a formula. Suppose that predictor were 'Girth' and
+| other were 'Volume'. What formula would it create?
+1: Volume ~ Girth - 1
+| The formula would regress Volume against the single predictor, Girth, suppressing the default intercept using the convention, - 1, for the purpose.
+
+| The remaining function, eliminate, applies regressOneOnOne to all variables except a given predictor and collects the residuals in a data frame. We'll
+| first show that when we eliminate one regressor from the data, a regression on the remaining will produce their correct coefficients. (Of course, the
+| coefficient of the eliminated regressor will be missing, but more about that later.)
+
+| For reference, create a model based on all three regressors, Girth, Height, and Constant, and assign the result to a variable named fit. Use an
+| expression such as fit <- lm(Volume ~ Girth + Height + Constant -1, trees). Don't forget the -1.
+> fit <- lm(Volume ~ Girth + Height + Constant - 1, trees)
+
+| Now let's eliminate Girth from the data set. Call the reduced data set trees2 to indicate it has only 2 regressors. Use the expression trees2 <-
+| eliminate("Girth", trees).
+> trees2 <- eliminate("Girth", trees)
+
+| Why, in trees2, is the Constant column not constant?
+> The constant, 1, has been replaced by its residual when regressed against Girth.
+
+| Now create a model, called fit2, using the reduced data set. Use an expression such as fit2 <- lm(Volume ~ Height + Constant -1, trees2). Don't forget
+| to use -1 in the formula.
+
+> fit2 <- lm(Volume ~ Height + Constant -1, trees2)
+
+| Use the expression lapply(list(fit, fit2), coef) to print coefficients of fit and fit2 for comparison.
+
+> lapply(list(fit, fit2), coef)
+
+
+| The coefficient of the eliminated variable is missing, of course. One way to get it would be to go back to the original data, trees, eliminate a
+| different regressor, such as Height, and do another 2 variable regession, as above. There are much more efficient ways, but efficiency is not the point
+| of this demonstration. We have shown how to reduce a regression in 3 variables to a regression in 2. We can go further and eliminate another variable,
+| reducing a regression in 2 variables to a regression in 1.
+
+| The coefficient of the eliminated variable is missing, of course. One way to get it would be to go back to the original data, trees, eliminate a
+| different regressor, such as Height, and do another 2 variable regession, as above. There are much more efficient ways, but efficiency is not the point
+| of this demonstration. We have shown how to reduce a regression in 3 variables to a regression in 2. We can go further and eliminate another variable,
+| reducing a regression in 2 variables to a regression in 1.
+
+| Here is the final step. We have used eliminate("Height", trees2) to reduce the data to the outcome, Volume, and the Constant regressor. We have
+| regressed Volume on Constant, and printed the coefficient as shown in the command above the answer. As you can see, the coefficient of Constant agrees
+| with previous values.
+
+| Suppose we were given a multivariable regression problem involving an outcome and N regressors, where N > 1. Using only single-variable regression, how
+| can the problem be reduced to a problem with only N-1 regressors?
+2: Pick any regressor and replace the outcome and all other regressors by their residuals against the chosen one.
+
+| We have illustrated that regression in many variables amounts to a series of regressions in one. The actual algorithms used by functions such as lm are
+| more efficient, but are computationally equivalent to what we have done. That is, the algorithms use equivalent steps but combine them more efficiently
+| and abstractly. This completes the lesson.
+
+
+LESSON 6
+###################
+
+| In this lesson, we'll look at some examples of regression models with more than one variable. We'll begin with the Swiss data which we've taken the
+| liberty to load for you. This data is part of R's datasets package. It was gathered in 1888, a time of demographic change in Switzerland, and measured
+| six quantities in 47 French-speaking provinces of Switzerland. We used the code from the slides (the R function pairs) to display here a 6 by 6 array of
+| scatterplots showing pairwise relationships between the variables. All of the variables, except for fertility, are proportions of population. For
+| example, "Examination" shows the percentage of draftees receiving the highest mark on an army exam, and "Education" the percentage of draftees with
+| education beyond primary school.
+
+| to represent the five independent variables in the formula passed to lm.  Remember the data is "swiss".
+
+> all <- lm(Fertility ~ ., swiss)
+
+| Recall that the Estimates are the coeffients of the independent variables of the linear model (all of which are percentages) and they reflect an
+| estimated change in the dependent variable (fertility) when the corresponding independent variable changes. So, for every 1% increase in percent of
+| males involved in agriculture as an occupation we expect a .17 decrease in fertility, holding all the other variables constant; for every 1% increase in
+| Catholicism, we expect a .10 increase in fertility, holding all other variables constant.
+
+| The "*" at the far end of the row indicates that the influence of Agriculture on Fertility is significant. At what alpha level is the t-test of
+| Agriculture significant?
+2: 0.05
+[Look at Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1]
+
+| Now generate the summary of another linear model (don't store it in a new variable) in which Fertility depends only on agriculture.
+> summary(lm(Fertility ~ Agriculture, swiss))
+
+| What is the coefficient of agriculture in this new model?
+2: 0.19420
+
+| The interesting point is that the sign of the Agriculture coefficient changed from negative (when all the variables were included in the model) to
+| positive (when the model only considered Agriculture). Obviously the presence of the other factors affects the influence Agriculture has on Fertility.
+
+| Let's consider the relationship between some of the factors. How would you expect level Education and performance on an Examination to be related?
+1: They would be correlated
+> cor(swiss$Examination, swiss$Education)
+| The correlation of .6984 shows the two are correlated. Now find the correlation between Agriculture and Education.
+> cor(swiss$Agriculture, swiss$Education)
+
+| The negative correlation (-.6395) between Agriculture and Education might be affecting Agriculture's influence on Fertility. I've loaded and sourced the
+| file swissLMs.R in your working directory. In it is a function makelms() which generates a sequence of five linear models. Each model has one more
+| independent variable than the preceding model, so the first has just one independent variable, Agriculture, and the last has all 5. I've tried loading
+| the source code in your editor. If I haven't done this, open the file manually so you can look at the code.
+
+makelms()
+
+| The addition of which variable changes the sign of Agriculture's coefficient from positive to negative?
+4: Education
+
+| Now we'll show what happens when we add a variable that provides no new linear information to a model. Create a variable ec that is the sum of
+| swiss$Examination and swiss$Catholic.
+ec <- swiss$Examination+swiss$Catholic
+
+| Now generate a new model efit with Fertility as the dependent variable and the remaining 5 of the original variables AND ec as the independent
+| variables. Use the R shorthand ". + ec" for the righthand side of the formula.
+efit <- lm(Fertility ~ . + ec, swiss)
+
+| We'll see that R ignores this new term since it doesn't add any information to the model.
+| Subtract the efit coefficients from the coefficients of the first model you created, all.
+all$coefficients-efit$coefficients
+
+LESSON 7
+###################
+
+| This is the second lesson in which we'll look at some regression models with more than one independent variable. We'll begin with the InsectSprays data
+| which we've taken the liberty to load for you. This data is part of R's datasets package. It shows the effectiveness of different insect sprays. We've
+| used the code from the slides to show you a boxplot of the data.
+
+[1] 4640.273
+
+| Not quite right, but keep trying. Or, type info() for more options.
+
+| Type "sRes <- deviance(fit)" at the R prompt.
+
+> sRes <- deviance(fit)
+
+| Excellent job!
+
+  |=====================================================================================================================                            |  81%
+
+| Finally, the ratio sRes/sTot represents the percent of total variation contributed by the residuals. To find the percent contributed by the model, i.e.,
+| the regression variation, subtract the fraction sRes/sTot from 1.  This is the value R^2.
+
+> 
+> sRest/sTot
+Error: object 'sRest' not found
+> sRes/sTot
+[1] 0.7895371
+
+| Keep trying! Or, type info() for more options.
+
+| Type "1-sRes/sTot" at the R prompt.
+
+> 1- sRes/sTot
+[1] 0.2104629
+
+
+Call:
+lm(formula = child ~ parent, data = galton)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.8050 -1.3661  0.0487  1.6339  5.9264 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 23.94153    2.81088   8.517   <2e-16 ***
+parent       0.64629    0.04114  15.711   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2.239 on 926 degrees of freedom
+Multiple R-squared:  0.2105,  Adjusted R-squared:  0.2096 
+F-statistic: 246.8 on 1 and 926 DF,  p-value: < 2.2e-16
+
+| Type "summary(fit)$r.squared" at the R prompt.
+
+
+> summary(fit)$r.squared
+[1] 0.2104629
+
+| You are doing so well!
+
+  |===================================================================================================================================              |  90%
+
+| To see some real magic, compute the square of the correlation of the galton data, the children and parents. Use the R function cor.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> cor(fit)^2
+Error in cor(fit) : supply both 'x' and 'y' or a matrix-like 'x'
+> (cor(galton$child, galtong$parents))^2
+Error in is.data.frame(y) : object 'galtong' not found
+> (cor(galton$child, galton$parents))^2
+Error in cor(galton$child, galton$parents) : 
+  supply both 'x' and 'y' or a matrix-like 'x'
+> ?cor
+> cor(dalton)
+Error in is.data.frame(x) : object 'dalton' not found
+> (cor(galton)^2
++ )
+           child    parent
+child  1.0000000 0.2104629
+parent 0.2104629 1.0000000
+
+| You're close...I can feel it! Try it again. Or, type info() for more options.
+
+| Type "cor(galton$parent,galton$child)^2" at the R prompt.
+
+> cor(galton$child, galton$parents)^2
+Error in cor(galton$child, galton$parents) : 
+  supply both 'x' and 'y' or a matrix-like 'x'
+> cor(galton$parent, galton$child)^2
+[1] 0.2104629
+
+
+
+
+
+| In this lesson we'll illustrate that regression in many variables amounts to a series of regressions in one. Using regression in one variable, we'll
+| show how to eliminate any chosen regressor, thus reducing a regression in N variables, to a regression in N-1. Hence, if we know how to do a regression
+| in 1 variable, we can do a regression in 2. Once we know how to do a regression in 2 variables, we can do a regression in 3, and so on. We begin with
+| the galton data and a review of eliminating the intercept by subtracting the means.
+
+
+
+| When we perform a regression in one variable, such as lm(child ~ parent, galton), we get two coefficients, a slope and an intercept. The intercept is
+| really the coefficient of a special regressor which has the same value, 1, at every sample. The function, lm, includes this regressor by default.
+
+
+| We'll demonstrate by substituting an all-ones regressor of our own. This regressor must have the same number of samples as galton (928.) Create such an
+| object and name it ones, using ones <- rep(1, nrow(galton)), or some equivalent expression.
+
+> ones <- rep(1, nrow(galton))
+
+
+| The galton data has already been loaded. The default intercept can be excluded by using -1 in the formula. Perform a regression which substitutes our
+| regressor, ones, for the default using lm(child ~ ones + parent -1, galton). Since we want the result to print, don't assign it to a variable.
+
+> lm(child ~ ones + parent - 1, galton)
+
+Call:
+lm(formula = child ~ ones + parent - 1, data = galton)
+
+Coefficients:
+   ones   parent  
+23.9415   0.6463  
+
+
+| Nice work!
+
+  |=============================                                                                                                                    |  20%
+
+| The coefficient of ones is 23.9415. Now use the default, lm(child ~ parent, galton), to show the intercept has the same value. This time, DO NOT
+| suppress the the intercept with -1.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> lm(child ~ parent, galton)
+
+Call:
+lm(formula = child ~ parent, data = galton)
+
+Coefficients:
+(Intercept)       parent  
+    23.9415       0.6463  
+
+
+| That's the answer I was looking for.
+
+  |===================================                                                                                                              |  24%
+
+| The regression in one variable given by lm(child ~ parent, galton) really involves two regressors, the variable, parent, and a regressor of all ones.
+
+1: False
+2: True
+
+Selection: 2
+
+| Great job!
+
+  |=========================================                                                                                                        |  28%
+
+| In earlier lessons we demonstrated that the regression line given by lm(child ~ parent, galton) goes through the point x=mean(parent), y=mean(child). We
+| also showed that if we subtract the mean from each variable, the regression line goes through the origin, x=0, y=0, hence its intercept is zero. Thus,
+| by subtracting the means, we eliminate one of the two regressors, the constant, leaving just one, parent. The coefficient of the remaining regressor is
+| the slope.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu....
+
+  |==============================================                                                                                                   |  32%
+
+| Subtracting the means to eliminate the intercept is a special case of a general technique which is sometimes called Gaussian Elimination. As it applies
+| here, the general technique is to pick one regressor and to replace all other variables by the residuals of their regressions against that one.
+
+...
+
+  |====================================================                                                                                             |  36%
+
+| Suppose, as claimed, that subtracting a variable's mean is a special case of replacing the variable with a residual. In this special case, it would be
+| the residual of a regression against what?
+
+1: The variable itself
+2: The outcome
+3: The constant, 1
+
+Selection: 3
+
+| All that hard work is paying off!
+
+  |==========================================================                                                                                       |  40%
+
+| The mean of a variable is the coefficient of its regression against the constant, 1. Thus, subtracting the mean is equivalent to replacing a variable by
+| the residual of its regression against 1. In an R formula, the constant regressor can be represented by a 1 on the right hand side. Thus, the
+| expression, lm(child ~ 1, galton), regresses child against the constant, 1. Recall that in the galton data, the mean height of a child was 68.09 inches.
+| Use lm(child ~ 1, galton) to compare the resulting coefficient (the intercept) and the mean height of 68.09. Since we want the result to print, don't
+| assign it a name.
+
+> lm(child ~ 1, galton)
+
+Call:
+lm(formula = child ~ 1, data = galton)
+
+Coefficients:
+(Intercept)  
+      68.09  
+
+
+| All that practice is paying off!
+
+  |================================================================                                                                                 |  44%
+
+| The mean of a variable is equal to its regression against the constant, 1.
+
+1: True
+2: False
+
+Selection: 1
+
+| That's a job well done!
+
+  |======================================================================                                                                           |  48%
+
+| To illustrate the general case we'll use the trees data from the datasets package. The idea is to predict the Volume of timber which a tree might
+| produce from measurements of its Height and Girth. To avoid treating the intercept as a special case, we have added a column of 1's to the data which we
+| shall use in its place. Please take a moment to inspect the data using either View(trees) or head(trees).
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> view(trees)
+Error: could not find function "view"
+> View(tress)
+Error in View : object 'tress' not found
+
+| Not exactly. Give it another go. Or, type info() for more options.
+
+| Enter either head(trees) or View(trees) at the R prompt.
+
+> View(trees)
+
+| Perseverance, that's the answer.
+
+  |===========================================================================                                                                      |  52%
+
+| A file of relevant code has been copied to your working directory and sourced. The file, elimination.R, should have appeared in your editor. If not,
+| please open it manually.
+
+...
+
+  |=================================================================================                                                                |  56%
+
+| The general technique is to pick one predictor and to replace all other variables by the residuals of their regressions against that one. The function,
+| regressOneOnOne, in eliminate.R performs the first step of this process. Given the name of a predictor and one other variable, other, it returns the
+| residual of other when regressed against predictor. In its first line, labeled Point A, it creates a formula. Suppose that predictor were 'Girth' and
+| other were 'Volume'. What formula would it create?
+
+1: Volume ~ Girth
+2: Girth ~ Volume - 1
+3: Volume ~ Girth - 1
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.Selection: 2
+
+| Not quite, but you're learning! Try again.
+
+| The formula would regress Volume against the single predictor, Girth, suppressing the default intercept using the convention, - 1, for the purpose.
+
+1: Volume ~ Girth - 1
+2: Girth ~ Volume - 1
+3: Volume ~ Girth
+
+Selection: 1
+
+| Keep working like that and you'll get there!
+
+  |=======================================================================================                                                          |  60%
+
+| The remaining function, eliminate, applies regressOneOnOne to all variables except a given predictor and collects the residuals in a data frame. We'll
+| first show that when we eliminate one regressor from the data, a regression on the remaining will produce their correct coefficients. (Of course, the
+| coefficient of the eliminated regressor will be missing, but more about that later.)
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu....
+
+  |=============================================================================================                                                    |  64%
+
+| For reference, create a model based on all three regressors, Girth, Height, and Constant, and assign the result to a variable named fit. Use an
+| expression such as fit <- lm(Volume ~ Girth + Height + Constant -1, trees). Don't forget the -1.
+
+> fit <- lm(Volume ~ Girth + Height + Constant - 1, trees)
+
+| You are doing so well!
+
+  |===================================================================================================                                              |  68%
+
+| Now let's eliminate Girth from the data set. Call the reduced data set trees2 to indicate it has only 2 regressors. Use the expression trees2 <-
+| eliminate("Girth", trees).
+
+> tress2 <- eliminate("Girth", trees)
+
+| You almost had it, but not quite. Try again. Or, type info() for more options.
+
+| Enter trees2 <- eliminate("Girth", trees) at the R prompt.
+
+> trees2 <- eliminate("Girth", trees)
+
+| Great job!
+
+  |========================================================================================================                                         |  72%
+
+| Use head(trees2) or View(trees2) to inspect the reduced data set.
+
+> head(trees2)
+   Constant   Height     Volume
+1 0.4057735 24.38809  -9.793826
+2 0.3842954 17.73947 -10.520109
+3 0.3699767 14.64038 -11.104298
+4 0.2482677 14.29818  -9.019900
+5 0.2339490 22.19910  -7.104089
+6 0.2267896 23.64956  -6.446183
+
+| That's correct!
+
+  |==============================================================================================================                                   |  76%
+
+| Why, in trees2, is the Constant column not constant?
+
+1: The constant, 1, has been replaced by its residual when regressed against Girth.
+2: Computational precision was insufficient.
+3: There must be some mistake
+
+Selection: 1
+
+| That's a job well done!
+
+  |====================================================================================================================                             |  80%
+
+| Now create a model, called fit2, using the reduced data set. Use an expression such as fit2 <- lm(Volume ~ Height + Constant -1, trees2). Don't forget
+| to use -1 in the formula.
+
+> fit2 <- lm(Volume ~ Height + Constant -1, trees2)
+
+| That's correct!
+
+  |==========================================================================================================================                       |  84%
+
+| Use the expression lapply(list(fit, fit2), coef) to print coefficients of fit and fit2 for comparison.
+
+> lapply(list(fit, fit2), coef)
+[[1]]
+      Girth      Height    Constant 
+  4.7081605   0.3392512 -57.9876589 
+
+[[2]]
+     Height    Constant 
+  0.3392512 -57.9876589 
+
+
+| You got it!
+
+  |================================================================================================================================                 |  88%
+
+| The coefficient of the eliminated variable is missing, of course. One way to get it would be to go back to the original data, trees, eliminate a
+| different regressor, such as Height, and do another 2 variable regession, as above. There are much more efficient ways, but efficiency is not the point
+| of this demonstration. We have shown how to reduce a regression in 3 variables to a regression in 2. We can go further and eliminate another variable,
+| reducing a regression in 2 variables to a regression in 1.
+
+...
+
+  |=====================================================================================================================================            |  92%
+
+| Here is the final step. We have used eliminate("Height", trees2) to reduce the data to the outcome, Volume, and the Constant regressor. We have
+| regressed Volume on Constant, and printed the coefficient as shown in the command above the answer. As you can see, the coefficient of Constant agrees
+| with previous values.
+
+
+Call:
+lm(formula = Volume ~ Constant - 1, data = eliminate("Height", 
+    trees2))
+
+Coefficients:
+Constant  
+  -57.99  
+
+...
+
+  |===========================================================================================================================================      |  96%
+
+| Suppose we were given a multivariable regression problem involving an outcome and N regressors, where N > 1. Using only single-variable regression, how
+| can the problem be reduced to a problem with only N-1 regressors?
+
+1: Subtract the mean from the outcome and each regressor.
+2: Pick any regressor and replace the outcome and all other regressors by their residuals against the chosen one.
+
+Selection: 2
+
+| All that practice is paying off!
+
+  |=================================================================================================================================================| 100%
+
+| We have illustrated that regression in many variables amounts to a series of regressions in one. The actual algorithms used by functions such as lm are
+| more efficient, but are computationally equivalent to what we have done. That is, the algorithms use equivalent steps but combine them more efficiently
+| and abstractly. This completes the lesson.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu....
+
+| Are you currently enrolled in the Coursera course associated with this lesson?
+
+1: Yes
+2: No
+
+Selection: 
+Enter an item from the menu, or 0 to exit
+Selection: 
+Enter an item from the menu, or 0 to exit
+Selection: 1
+
+| Would you like me to notify Coursera that you've completed this lesson? If so, I'll need to get some more info from you.
+
+1: Yes
+2: No
+3: Maybe later
+
+Selection: 1
+
+| Is the following information correct?
+
+Course ID: regmods-004
+Submission login (email): chrisdaly1988@gmail.com
+Submission password: 96EfRhjwEd
+
+1: Yes, go ahead!
+2: No, I need to change something.
+
+Selection: 1
+
+| I'll try to tell Coursera you've completed this lesson now.
+
+| Great work!
+
+| I've notified Coursera that you have completed regmods-004, Introduction_to_Multivariable_Regression.
+
+| You've reached the end of this lesson! Returning to the main menu...
+
+| Please choose a course, or type 0 to exit swirl.
+
+1: Regression Models
+2: swirldev-swirl courses-b57eb41
+3: Take me to the swirl course repository!
+
+Selection: 1
+
+| Please choose a lesson, or type 0 to return to course menu.
+
+ 1: Introduction                               2: Residuals                                  3: Least Squares Estimation                
+ 4: Residual Variation                         5: Introduction to Multivariable Regression   6: MultiVar Examples                       
+ 7: MultiVar Examples2                         8: MultiVar Examples3                         9: Residuals Diagnostics and Variation     
+10: Variance Inflation Factors                11: Overfitting and Underfitting              12: Binary Outcomes                         
+13: Count Outcomes                            
+
+Selection: 6
+
+| Attemping to load lesson dependencies...
+
+| Package 'datasets' loaded correctly!
+
+| Package 'stats' loaded correctly!
+
+| Package 'graphics' loaded correctly!
+
+  |                                                                                                                                                 |   0%
+
+| MultiVar_Examples. (Slides for this and other Data Science courses may be found at github https://github.com/DataScienceSpecialization/courses. If you
+| care to use them, they must be downloaded as a zip file and viewed locally. This lesson corresponds to Regression_Models/02_02_multivariateExamples.)
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu....
+
+  |=======                                                                                                                                          |   5%
+
+| In this lesson, we'll look at some examples of regression models with more than one variable. We'll begin with the Swiss data which we've taken the
+| liberty to load for you. This data is part of R's datasets package. It was gathered in 1888, a time of demographic change in Switzerland, and measured
+| six quantities in 47 French-speaking provinces of Switzerland. We used the code from the slides (the R function pairs) to display here a 6 by 6 array of
+| scatterplots showing pairwise relationships between the variables. All of the variables, except for fertility, are proportions of population. For
+| example, "Examination" shows the percentage of draftees receiving the highest mark on an army exam, and "Education" the percentage of draftees with
+| education beyond primary school.
+
+...
+
+  |=============                                                                                                                                    |   9%
+
+| From the plot, which is NOT one of the factors measured?
+
+1: Infant Mortality
+2: Obesity
+3: Catholic
+4: Fertility
+
+Selection: 2
+
+| Keep working like that and you'll get there!
+
+  |====================                                                                                                                             |  14%
+
+| First, use the R function lm to generate the linear model "all" in which Fertility is the variable dependent on all the others. Use the R shorthand "."
+| to represent the five independent variables in the formula passed to lm.  Remember the data is "swiss".
+
+> all <- lm(Fertility ~ ., swiss)
+
+| You're dedication is inspiring!
+
+  |==========================                                                                                                                       |  18%
+
+| Now look at the summary of the linear model all.
+
+> summary(all)
+
+Call:
+lm(formula = Fertility ~ ., data = swiss)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-15.2743  -5.2617   0.5032   4.1198  15.3213 
+
+Coefficients:
+                 Estimate Std. Error t value Pr(>|t|)    
+(Intercept)      66.91518   10.70604   6.250 1.91e-07 ***
+Agriculture      -0.17211    0.07030  -2.448  0.01873 *  
+Examination      -0.25801    0.25388  -1.016  0.31546    
+Education        -0.87094    0.18303  -4.758 2.43e-05 ***
+Catholic          0.10412    0.03526   2.953  0.00519 ** 
+Infant.Mortality  1.07705    0.38172   2.822  0.00734 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 7.165 on 41 degrees of freedom
+Multiple R-squared:  0.7067,	Adjusted R-squared:  0.671 
+F-statistic: 19.76 on 5 and 41 DF,  p-value: 5.594e-10
+
+
+| Keep up the great work!
+
+  |=================================                                                                                                                |  23%
+
+| Recall that the Estimates are the coeffients of the independent variables of the linear model (all of which are percentages) and they reflect an
+| estimated change in the dependent variable (fertility) when the corresponding independent variable changes. So, for every 1% increase in percent of
+| males involved in agriculture as an occupation we expect a .17 decrease in fertility, holding all the other variables constant; for every 1% increase in
+| Catholicism, we expect a .10 increase in fertility, holding all other variables constant.
+
+...
+
+  |========================================                                                                                                         |  27%
+
+| The "*" at the far end of the row indicates that the influence of Agriculture on Fertility is significant. At what alpha level is the t-test of
+| Agriculture significant?
+
+1: 0.01
+2: 0.05
+3: R doesn't say
+4: 0.1
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.Selection: 4
+
+| You almost had it, but not quite. Try again.
+
+| Look at the "Signif. codes" line in the summary output.
+
+1: R doesn't say
+2: 0.05
+3: 0.1
+4: 0.01
+
+Selection: 2
+
+| You got it!
+
+  |==============================================                                                                                                   |  32%
+
+| Now generate the summary of another linear model (don't store it in a new variable) in which Fertility depends only on agriculture.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> lm(Fertility ~ agriculture)
+Error in eval(expr, envir, enclos) : object 'Fertility' not found
+> lm(Fertility ~ agriculture, swiss)
+Error in eval(expr, envir, enclos) : object 'agriculture' not found
+> lm(Fertility ~ Agriculture, swiss)
+
+Call:
+lm(formula = Fertility ~ Agriculture, data = swiss)
+
+Coefficients:
+(Intercept)  Agriculture  
+    60.3044       0.1942  
+
+
+| Keep trying! Or, type info() for more options.
+
+| Type "summary(lm(Fertility ~ Agriculture, swiss))" at the R prompt.
+
+> summary(lm(Fertility ~ Agriculture, swiss))
+
+Call:
+lm(formula = Fertility ~ Agriculture, data = swiss)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-25.5374  -7.8685  -0.6362   9.0464  24.4858 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 60.30438    4.25126  14.185   <2e-16 ***
+Agriculture  0.19420    0.07671   2.532   0.0149 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 11.82 on 45 degrees of freedom
+Multiple R-squared:  0.1247,	Adjusted R-squared:  0.1052 
+F-statistic: 6.409 on 1 and 45 DF,  p-value: 0.01492
+
+
+| Perseverance, that's the answer.
+
+  |=====================================================                                                                                            |  36%
+
+| What is the coefficient of agriculture in this new model?
+
+1: *
+2: 0.19420
+3: 60.30438
+4: 0.07671
+
+Selection: 2
+
+| You got it right!
+
+  |===========================================================                                                                                      |  41%
+
+| The interesting point is that the sign of the Agriculture coefficient changed from negative (when all the variables were included in the model) to
+| positive (when the model only considered Agriculture). Obviously the presence of the other factors affects the influence Agriculture has on Fertility.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu....
+
+  |==================================================================                                                                               |  45%
+
+| Let's consider the relationship between some of the factors. How would you expect level Education and performance on an Examination to be related?
+
+1: They would be correlated
+2: I would not be able to guess without more information
+3: They would be uncorrelated
+
+Selection: 1
+
+| You're dedication is inspiring!
+
+  |========================================================================                                                                         |  50%
+
+| Now check your intuition with the R command "cor". This computes the correlation between Examination and Education.
+
+> cor(swiss$Examinationm, swiss$Education)
+Error in cor(swiss$Examinationm, swiss$Education) : 'x' must be numeric
+> cor(swiss$Examination, swiss$Education)
+[1] 0.6984153
+
+| You are quite good my friend!
+
+  |===============================================================================                                                                  |  55%
+
+| The correlation of .6984 shows the two are correlated. Now find the correlation between Agriculture and Education.
+
+> cor(swiss$Agriculture, swiss$Education)
+[1] -0.6395225
+
+| That's a job well done!
+
+  |======================================================================================                                                           |  59%
+
+| The negative correlation (-.6395) between Agriculture and Education might be affecting Agriculture's influence on Fertility. I've loaded and sourced the
+| file swissLMs.R in your working directory. In it is a function makelms() which generates a sequence of five linear models. Each model has one more
+| independent variable than the preceding model, so the first has just one independent variable, Agriculture, and the last has all 5. I've tried loading
+| the source code in your editor. If I haven't done this, open the file manually so you can look at the code.
+
+...setwd("~/GitHub/Data-Scientist-MOOC/7 - Regression Models/Swirl")
+
+  |============================================================================================                                                     |  64%
+
+| Now run the function makelms() to see how the addition of variables affects the coefficient of Agriculture in the models.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> 
+> 
+> makelms()
+Agriculture Agriculture Agriculture Agriculture Agriculture 
+  0.1942017   0.1095281  -0.2030377  -0.2206455  -0.1721140 
+
+| Nice work!
+
+  |===================================================================================================                                              |  68%
+
+| The addition of which variable changes the sign of Agriculture's coefficient from positive to negative?
+
+1: Examination
+2: Catholic
+3: Infant.Mortality
+4: Education
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.Selection: 4
+
+| Keep up the great work!
+
+  |=========================================================================================================                                        |  73%
+
+| Now we'll show what happens when we add a variable that provides no new linear information to a model. Create a variable ec that is the sum of
+| swiss$Examination and swiss$Catholic.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> ec <- sum(swiss$Examination, swiss$Catholic)
+
+| One more time. You can do it! Or, type info() for more options.
+
+| Type "ec <- swiss$Examination+swiss$Catholic" at the R prompt.
+
+> ec <- sum(swiss$Examination, swiss$Catholic)
+
+| Not quite, but you're learning! Try again. Or, type info() for more options.
+
+| Type "ec <- swiss$Examination+swiss$Catholic" at the R prompt.
+
+> ec <- sum(swiss$Examination, swiss$Catholic)
+
+| Give it another try. Or, type info() for more options.
+
+| Type "ec <- swiss$Examination+swiss$Catholic" at the R prompt.
+
+> ec <- swiss$Examination+swiss$Catholic
+
+| You're the best!
+
+  |================================================================================================================                                 |  77%
+
+| Now generate a new model efit with Fertility as the dependent variable and the remaining 5 of the original variables AND ec as the independent
+| variables. Use the R shorthand ". + ec" for the righthand side of the formula.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> efit <- lm(Fertility ~ . + ec)
+Error in terms.formula(formula, data = data) : 
+  '.' in formula and no 'data' argument
+> efit <- lm(Fertility ~ . + ec, swiss)
+
+| That's the answer I was looking for.
+
+  |=======================================================================================================================                          |  82%
+
+| We'll see that R ignores this new term since it doesn't add any information to the model.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu....
+
+  |=============================================================================================================================                    |  86%
+
+| Subtract the efit coefficients from the coefficients of the first model you created, all.
+
+Not all of the characters in ~/GitHub/Data-Scientist-MOOC/7 - Regression Models/swirl notes.txt could be encoded using ISO8859-1. To save using a different encoding, choose "File | Save with Encoding..." from the main menu.> efit$coef - all$coef
+     (Intercept)      Agriculture      Examination        Education         Catholic Infant.Mortality               ec 
+               0                0                0                0                0                0               NA 
+Warning message:
+In efit$coef - all$coef :
+  longer object length is not a multiple of shorter object length
+
+| Keep trying! Or, type info() for more options.
+
+| Type "all$coefficients-efit$coefficients" at the R prompt.
+
+> all$coefficients-efit$coefficients
+     (Intercept)      Agriculture      Examination        Education         Catholic Infant.Mortality               ec 
+               0                0                0                0                0                0               NA 
+Warning message:
+In all$coefficients - efit$coefficients :
+  longer object length is not a multiple of shorter object length
+
+| You are quite good my friend!
+
+  |====================================================================================================================================             |  91%
+
+| Which is the coefficient of ec?
+
+1: 0
+2: NA
+3: I haven't a clue.
+
+Selection: 2
+
+| That's the answer I was looking for.
+
+  |==========================================================================================================================================       |  95%
+
+| This tells us that
+
+1: Adding ec doesn't change the model
+2: Adding ec zeroes out the coefficients
+3: R is a really cool
+
+LESSON 7
+###################
+
+
+| MultiVar_Examples2. (Slides for this and other Data Science courses may be found at github https://github.com/DataScienceSpecialization/courses. If you
+| care to use them, they must be downloaded as a zip file and viewed locally. This lesson corresponds to Regression_Models/02_02_multivariateExamples.)
+
+...
+
+  |=====                                                                                                                                            |   3%
+
+| This is the second lesson in which we'll look at some regression models with more than one independent variable. We'll begin with the InsectSprays data
+| which we've taken the liberty to load for you. This data is part of R's datasets package. It shows the effectiveness of different insect sprays. We've
+| used the code from the slides to show you a boxplot of the data.
+
+...
+
+  |=========                                                                                                                                        |   6%
+
+| How many Insect Sprays are in this dataset?
+
+> 6
+[1] 6
+
+| That's correct!
+
+  |==============                                                                                                                                   |   9%
+
+| From the boxplot, which spray has the largest median?
+dim(InsectSprays)
+
+| It's not surprising that with 72 counts we'd have 12 count for each of the 6 sprays. In this lesson we'll consider multilevel factor levels and how we
+| interpret linear models of data with more than 2 factors.
+
+| The class of the second "spray" column is factor. Recall from the slides that the equation representing the relationship between a particular outcome
+| and several factors contains binary variables, one for each factor. This data has 6 factors so we need 6 dummy variables. Each will indicate if a
+| particular outcome (a count) is associated with a specific factor or category (insect spray).
+
+| Using R's lm function, generate the linear model in which count is the dependent variable and spray is the independent. Recall that in R formula has the
+| form y ~ x, where y depends on the predictor x. The data set is InsectSprays. Store the model in the variable fit.
+> fit <- lm(count ~ spray, InsectSprays)
+
+| Using R's summary function, look at the coefficients of the model. Recall that these can be accessed with the R construct x$coef.
+> summary(fit)$coef
+
+| Notice that R returns a 6 by 4 array. For convenience, store off the first column of this array, the Estimate column, in a variable called est. Remember
+| the R construct for accessing the first column is x[,1].
+> est <- summary(fit)$coef[,1]
+
+| Notice that sprayA does not appear explicitly in the list of Estimates. It is there, however, as the first entry in the Estimate column. It is labeled
+| as "(Intercept)". That is because sprayA is the first in the alphabetical list of the levels of the factor, and R by default uses the first level as the
+| reference against which the other levels or groups are compared when doing its t-tests (shown in the third column).
+
+| What do the Estimates of this model represent? Of course they are the coefficients of the binary or dummy variables associated with sprays. More
+| importantly, the Intercept is the mean of the reference group, in this case sprayA, and the other Estimates are the distances of the other groups' means
+| from the reference mean. Let's verify these claims now. First compute the mean of the sprayA counts. Remember the counts are all stored in the vectors
+| named sx. Now we're interested in finding the mean of sA.
+
+
+> nfit <- lm(count ~ spray - 1, InsectSprays)
+
+| Notice that sprayA now appears explicitly in the list of Estimates. Also notice how the values of the columns have changed. The means of all the groups
+| are now explicitly shown in the Estimate column. Remember that previously, with an intercept, sprayA was excluded, its mean was the intercept, and the
+| values for the other sprays (estimates, standard errors, and t-tests) were all computed relative to sprayA, the reference group. Omitting the intercept
+| clearly affected the model.
+
+| Without an intercept (reference group) the tests are whether the expected counts (the groups means) are different from zero. Which spray has the least
+| significant result?
+
+| Clearly, which level is first is important to the model. If you wanted a different reference group, for instance, to compare sprayB to sprayC, you could
+| refit the model with a different reference group.
+
+| The R function relevel does precisely this. It re-orders the levels of a factor. We'll do this now. We'll call relevel with two arguments. The first is
+| the factor, in this case InsectSprays$spray, and the second is the level that we want to be first, in this case "C". Store the result in a new variable
+| spray2.
+> spray2 <- relevel(InsectSprays$spray, "C")
+
+fit2 <- lm(count ~ spray2, InsectSprays)
+
+
+| We glossed over some details in this lesson. For instance, counts can never be 0 so the assumption of normality is violated. We'll explore this issue
+| more when we discuss Poisson GLMs. For now be glad that you've concluded this second lesson on multivariable linear models.
+
+
+LESSON 8
+###################
+
+| This is the third and final lesson in which we'll look at regression models with more than one independent variable or predictor. We'll begin with WHO
+| hunger data which we've taken the liberty to load for you. WHO is the World Health Organization and this data concerns young children from around the
+| world and rates of hunger among them which the organization compiled over a number of years. The original csv file was very large and we've subsetted
+| just the rows which identify the gender of the child as either male or female. We've read the data into the data frame "hunger" for you, so you can
+| easily access it.
+
+| Let's first look at the rate of hunger and see how it's changed over time. Use the R function lm to generate the linear model in which the rate of
+| hunger, Numeric, depends on the predictor, Year. Put the result in the variable fit.
+
+> fit <- lm(Numeric ~ Year, hunger)
+> summary(fit)$coef
+              Estimate  Std. Error   t value     Pr(>|t|)
+(Intercept) 634.479660 121.1445995  5.237375 2.007699e-07
+Year         -0.308397   0.0605292 -5.095012 4.209412e-07
+
+| What is the coefficient of hunger$Year?
+1: -0.30840
+
+| What does the intercept of the model represent?
+2: the percentage of hungry children at year 0
+
+| Now let's use R's subsetting capability to look at the rates of hunger for the different genders to see how, or even if, they differ.  Once again use
+| the R function lm to generate the linear model in which the rate of hunger (Numeric) for female children depends on Year. Put the result in the variable
+| lmF. You'll have to use the R construct x[hunger$Sex=="Female"] to pick out both the correct Numerics and the correct Years.
+lmF <- lm(Numeric[hunger$Sex == "Female"] ~ Year[hunger$Sex == "Female"], hunger)
+lmM <- lm(Numeric[hunger$Sex == "Male"] ~ Year[hunger$Sex == "Male"], hunger)
+
+| Now instead of separating the data by subsetting the samples by gender we'll use gender as another predictor to create the linear model lmBoth. Recall
+| that to do this in R we place a plus sign "+" between the independent variables, so the formula looks like dependent ~ independent1 + independent2.
+lmBoth <- lm(Numeric ~ Year + Sex, hunger)
+
+| Notice that three estimates are given, the intercept, one for Year and one for Male. What happened to the estimate for Female? Note that Male and Female
+| are categorical variables hence they are factors in this model. Recall from the last lesson (and slides) that R treats the first (alphabetical) factor
+| as the reference and its estimate is the intercept which represents the percentage of hungry females at year 0. The estimate given for the factor Male
+| is a distance from the intercept (the estimate of the reference group Female). To calculate the percentage of hungry males at year 0 you have to add
+| together the intercept and the male estimate given by the model.
+
+| Now we'll consider the interaction between year and gender to see how that affects changes in rates of hunger. To do this we'll add a third term to the
+| predictor portion of our model formula, the product of year and gender.
+> lmInter <- lm(Numeric ~ Year + Sex + Sex*Year, hunger)
+
+| Finally, we note that things are a little trickier when we're dealing with an interaction between predictors which are continuous (and not factors). The
+| slides show the underlying algebra, but we can summarize.
+
+
+| Suppose we have two interacting predictors and one of them is held constant. The expected change in the outcome for a unit change in the other predictor
+| is the coefficient of that changing predictor + the coefficient of the interaction * the value of the predictor held constant.
+
+| Suppose the linear model is Hi = b0 + (b1*Ii) + (b2*Yi)+ (b3*Ii*Yi) + ei. Here the H's represent the outcomes, the I's and Y's the predictors, neither
+| of which is a category, and the b's represent the estimated coefficients of the predictors. We can ignore the e's which represent the residuals of the
+| model. This equation models a continuous interaction since neither I nor Y is a category or factor. Suppose we fix I at some value and let Y vary.
+

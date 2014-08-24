@@ -1,0 +1,8 @@
+---
+title: "Effect of Severe Weather Events on Public Health and Economics"
+author: "Chris Daly"
+date: "Friday, August 22, 2014"
+output: html_document
+---
+
+## Introduction

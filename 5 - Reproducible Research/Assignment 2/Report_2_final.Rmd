@@ -1,0 +1,224 @@
+---
+title: "Effect of Severe Weather Events on Public Health and Economics"
+author: "Chris Daly"
+date: "Friday, August 22, 2014"
+output:
+  html_document:
+    fig_caption: yes
+    theme: spacelab
+---
+## Synopsis
+Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern.
+
+This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
+
+This report extracted the relevant information from the data and condensed it by year and event type. Two histograms were then plotted to attempt to answer two questions about the United States:  
+. What weather events are the most destructive to the population's health?
+. What weather events are the most destructive to the economy?
+
+### Libraries
+The following libraries were used throughout the code.
+```{r, echo = FALSE}
+library(ggplot2)
+library(Hmisc)
+library(knitr)
+library(reshape2)
+```
+
+```{r setoptions, echo = FALSE}
+opts_chunk$set(eval = TRUE)
+opts_chunk$set(cache = TRUE)
+opts_chunk$set(fig.width = 10)
+```
+
+### Data Processing
+A zip file contatining the data was downloaded from Amazon's cloudfront on the 22/08/2014 into a data folder in the working directory.
+
+```{r, eval = FALSE}
+# check if a data folder exists; if not then create one
+if (!file.exists("data")) {dir.create("data")}
+
+# file URL and destination file
+fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+destfile <- "./data/stormdata.zip"
+
+# download the file and note the time
+download.file(fileUrl, destfile = destfile)
+dateDownloaded <- date()
+```
+
+The relevant file was then loaded directly into R and subsetted to get only the columns relevant to the scope of this report.
+
+```{r}
+# read the csv file
+data_ <- read.csv("./data/stormdata.csv.bz2", header = TRUE)
+
+# subset the data with only the relevant rows
+data_ = subset(data_, select = c("EVTYPE","FATALITIES","INJURIES","PROPDMG", "PROPDMGEXP", "CROPDMG", "CROPDMGEXP"))
+```
+
+
+For the first part of the report the three relevant data columns were broken up into three vectors: events, fatalities, injuries. 
+
+```{r}
+# assign variables to the relevant columns
+events <- data_$EVTYPE
+fatalities <- data_$FATALITIES
+injuries <- data_$INJURIES
+```
+
+Many event types overlapped with each other, for example "EXCESSIVE HEAT" and "HEAT" are noted as two separate different events. A function was made to combine similar events and rename them for clarity. This reduced the amount of event types from 985 to 252.
+
+```{r}
+# standardize the event types and group similar ones together (985 - 252 factors)
+events <- sapply(events, FUN = function(x){
+  x <- tolower(x)
+  if (grepl("storm surge", x)){
+    return("Storm surge")
+  }
+  if (grepl("flood", x)){
+    return("Flood")
+  }
+  if (grepl("tornado", x)){
+    return("Tornado")
+  }
+  if (grepl("snow|ice|wintry|freez|blizzard|cold|winter", x)){
+    return("Wintry")
+  }
+  if (grepl("rain|shower", x)){
+    return("Rain")
+  }
+  if (grepl("thunder|lightning", x)){
+    return("Lightning")
+  } 
+  if (grepl("wind", x)){
+    return("Wind")
+  } 
+  if (grepl("hurricane|tropical|typhoon", x)){
+    return("Hurricane")
+  }
+  if (grepl("dry|drought", x)){
+    return("Dry weather")
+  }
+  if (grepl("heat|warm", x)){
+    return("Heat")
+  }
+  if (grepl("hail", x)){
+    return("Hail")
+  }
+  if (grepl("fire", x)){
+    return("Fire")
+  }
+  else{
+    return(capitalize(x))
+  }
+})
+```
+
+The processed events were then factored in order to get the sum of the fatality and injuries vectors. A data frame was created and ordered so that the ten weather events with most injuries and fatalities could be obtained.
+
+```{r, echo = FALSE}
+# factor variable to distinguish events
+events_factors <- factor(events)
+
+# sum up the fatalities and injuries for each event
+fatalities_sum <- aggregate(fatalities, list(events_factors), sum)
+injuries_sum <- aggregate(injuries, list(events_factors), sum)
+names(fatalities_sum) <- c("Event", "Count"); names(injuries_sum) <- c("Event", "Count")
+
+# create a DF of Event, Injuries, Fatalities
+health <- data.frame(fatalities_sum$Event, injuries_sum$Count, fatalities_sum$Count)
+names(health) <- c("Event", "Injuries", "Fatalities")
+
+# reorder by injuries and fatalities, then take the top 10 rows
+health <- health[with(health, order(-Injuries, -Fatalities)), ][1:10,]
+```
+
+```{r}
+head(health)
+```
+
+Next the data frame was manipulated in order to obtain a plot where the histograms are ordered by size and where fatalities are stacked ontop of injuries.
+
+```{r, echo = FALSE}
+# reshape to long format (for stacked histogram)
+health <- melt(health); names(health) <- c("Event", "variable", "value")
+
+# add a column to sort the histogram by size
+health$Event2 <- reorder(health$Event, health$value)
+```
+
+For the second part of the report the crop damage had an extra column that contained the exponent of its units (i.e K = 3, M = 6 etc). A function was made to combine the coefficient and exponent into one value.
+
+```{r}
+# function to combine the coefficient and exponent
+convertUnits <- function(coeff, expon){
+  
+  if (is.na(expon)){
+    as.numeric(coeff)
+  }
+  else if (toupper(expon)== "K"){
+    as.numeric(coeff)*10^3
+  }
+  else if (toupper(expon) == "M"){
+    as.numeric(coeff)*10^6
+  }
+  else if (toupper(expon)== "B"){
+    as.numeric(coeff)*10^9
+  }
+  else{
+    as.numeric(coeff)
+  }
+}
+
+# assign variables to the relevant columns and apply function
+prop_dmg <- apply(data_[, c('PROPDMG', 'PROPDMGEXP')], 1, function(y) convertUnits(y['PROPDMG'], y['PROPDMGEXP']))
+crop_dmg <- apply(data_[, c('CROPDMG', 'CROPDMGEXP')], 1, function(y) convertUnits(y['CROPDMG'], y['CROPDMGEXP']))
+```
+
+Then an identical procedure to part one was carried out.
+```{r, echo = FALSE}
+# sum up the property and crop damage for each event
+prop_sum <- aggregate(prop_dmg, list(events_factors), sum)
+crop_sum <- aggregate(crop_dmg, list(events_factors), sum)
+names(prop_sum) <- c("Event", "Count"); names(crop_sum) <- c("Event", "Count")
+
+# create a DF of Event, Crop damage, Property damage
+economic <- data.frame(prop_sum$Event, prop_sum$Count, crop_sum$Count)
+names(economic) <- c("Event", "Property", "Crop")
+
+# reorder by injuries and fatalities, then take the top 10 rows
+economic <- economic[with(economic, order(-Property, -Crop)), ][1:10,]
+
+# reshape to long format (for stacked histogram)
+economic <- melt(economic); names(economic) <- c("Event", "variable", "value")
+
+# add a column to sort the histogram by size
+economic$Event2 <- reorder(economic$Event, economic$value)
+```
+
+```{r, echo = FALSE}
+head(economic)
+```
+
+## Results
+
+### Population health
+```{r, cache = FALSE}
+# plot the graphs
+p1 <- ggplot(data = health, aes(x = Event2, y = value, fill = variable))
+p1 + geom_bar(stat ='identity') + 
+  labs(title = '10 Most Harmful Types of Weather\n Measured by Fatalities & Injuries 1950 - 2011',
+       y = 'Number of People', x = 'Weather Event', fill = 'Type of harm')
+
+```
+This histogram shows that tornadoes are by far the most deadly weather event in terms of both deaths and injuries to people.
+
+### Economic damage
+```{r, cache = FALSE}
+p2 <- ggplot(data = economic, aes(x = Event2, y = value/10^9, fill = variable))
+p2 + geom_bar(stat ='identity') + 
+labs(title = '10 Most Harmful Types of Weather\n Measured by Property and Crop Damage 1950 - 2011', 
+     y = 'Damage (Billion $)', x = 'Weather Event', fill = 'Type of damage') 
+```
+This histogram shows that floods have the most economic consequences, both to property and crops. Hurricanes, tornadoes and storm surges also cause a significant proportion of the overall damage.
