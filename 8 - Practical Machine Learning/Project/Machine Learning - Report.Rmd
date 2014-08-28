@@ -71,7 +71,7 @@ training <- data_training_clean[inTrain, ]
 crossval <- data_training_clean[-inTrain, ]
 ```
 
-Next, a correllation plot was produced in order to see how strong the variables relationships are with each other.
+A random forest model was selected to predict the classification because it has methods for balancing error in class population unbalanced data sets. The correlation between any two trees in the forest increases the forest error rate. Therefore, a correllation plot was produced in order to see how strong the variables relationships are with each other.
 
 ```{r, fig.height = 6, fig.width = 8}
 # plot a correlation matrix
@@ -81,7 +81,7 @@ corrplot(correlMatrix, order = "FPC", method = "circle", type = "lower", tl.cex 
 
 In this type of plot the dark red and blue colours indicate a highly negative and positive relationship respectively between the variables. There isn't much concern for highly correlated predictors which means that all of them can be included in the model.
 
-Then a model was fitted using the random forest classification function. The outcome was set to the training class and all the variables were used to predict.
+Then a model was fitted with the outcome set to the training class and all the other variables used to predict.
 
 ```{r}
 # fit a model to predict the classe using everything else as a predictor
