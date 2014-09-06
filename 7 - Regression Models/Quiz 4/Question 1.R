@@ -11,22 +11,17 @@ data(shuttle)
 # convert outcome to 0 = noauto, 1 = auto
 shuttle$use <- factor(shuttle$use, levels = c("auto", "noauto"), labels = c(1, 0))
 
-fit <- glm(use ~ wind - 1, data = shuttle, family = "binomial")
+fit1 <- glm(use ~ wind - 1, data = shuttle, family = "binomial")
 summary(fit)
 
-windhead <- fit$coef[1]
-windtail <- fit$coef[2]
+windhead <- fit1$coef[1]
+windtail <- fit1$coef[2]
 
-# Since predict() gives us log odds, we will have to convert to probabilities. 
-# To convert log odds to probabilities use
-# exp(lodds)/(1+exp(lodds)).
-# lodds <- predict(fit, data.frame(use = 0, wind = 0))
-# exp(lodds)/(1+exp(lodds))
-exp(windhead)/(1+exp(windtail))
+exp(windtail)/exp(windhead)
 
 
-# Question 2
-# Consider the previous problem. Give the estimated odds ratio for autoloader 
-# use comparing head winds (numerator) to tail winds (denominator) adjusting for 
-# wind strength from the variable magn.
+0.031
+1.327
+-0.031
+0.969
 
