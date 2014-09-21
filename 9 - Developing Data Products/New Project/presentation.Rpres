@@ -1,0 +1,106 @@
+Most Popular Baby Names for Ireland
+========================================================
+author: Chris Daly
+date: 21/09/2014
+
+Why Baby Names???
+========================================================
+Many expecting parents spend days deliberating on what's a "good" name for their baby. The criteria for this differs from person to person but most people like traditional names that are not too common. By using this applet, parents can see the most popular names for any given year and see how it trends with time.
+
+Another potential use is for people to link noticeable peaks and valleys in a name's popularity with pop culture events.
+
+Data
+========================================================
+The data was downloaded and pre-processed into a useful format using R and a px package.
+
+```{r, echo = FALSE}
+library(ggplot2)
+library(pxR)
+
+# load the data sets
+boys  <- read.px("./data/boys.px")
+girls <- read.px("./data/girls.px")
+
+# Function to pre-process the data
+preProcess <- function(sex){
+  
+  # extract the relevant information based on user choice
+  if (sex == "boys"){
+    data <- boys$DATA$value
+  }
+  if (sex == "girls"){
+    data <- girls$DATA$value
+  }
+  
+  # Convert the dataframe into a long format manually
+  l <- length(data$value)
+  
+  # initialize empty vector to hold amounts
+  amount <- c()
+  
+  # If the row is odd then add the next row's value to it
+  for (i in 1:l){
+    if (i%%2 == 1){
+      amount <- c(amount, data$value[i+1])
+    }
+  }
+  
+  # append the amount to the rank row
+  DF <- with(data, subset(data, Statistic == "Rank of Name in Ireland (Number)"))
+  DF$amount <- amount
+  DF$Statistic <- NULL
+  names(DF) <- c("Year", "Name", "Rank", "Amount")
+  DF
+}
+
+# pre-process both the data sets
+boys_data <- preProcess("boys")
+girls_data <- preProcess("girls")
+
+getNames <- function(sex, n, year) {
+  
+  # extract the relevant information based on user choice
+  if (sex == "boys"){
+    data <- boys_data
+  }
+  if (sex == "girls"){
+    data <- girls_data
+  }
+  
+  # get the names for the top n ranks for a specific year
+  DF <- with(data, subset(data, Year == year & Rank %in% c(1:n)))
+  names <- DF$Name
+  
+  # subset all years with this filter
+  DF1 <- with(data, subset(data, Name %in% names))
+  
+  # Plot the graph
+  p1 <- ggplot(data = DF1, aes(x = Year, y = Amount, fill = Name))
+  
+  # This is necessary since you want one line per samples rather than for each data point
+  p1 + geom_line(aes(colour = Name, group = Name)) + 
+    labs(title = 'Most Popular Baby Names 1998 - 2013',
+         y = 'Number of babies', x = 'Year', fill = 'Name')
+}
+```
+
+```{r}
+head(boys_data)
+```
+
+Using the App
+========================================================
+!["app""](myapp.png)
+Specifiy the following using slider bars & dropdown box:
+- Year
+- Number of names
+- Sex
+
+About
+========================================================
+
+This applet was made as a project for Coursera's class on Developing Data Products. 
+
+It uses data available from the Central Statistics Office in order to generate graphs on the most popular baby names in Ireland for specific years.
+
+It was written in R and hosted by shiny apps at https://strout.shinyapps.io/Names
