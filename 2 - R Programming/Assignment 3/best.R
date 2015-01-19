@@ -8,6 +8,8 @@ best <- function(state, outcome) {
   
   # vector for states
   states <- getStates(col_state)
+  # Hi Chris, I'm sorry to ask for it right here, but can you tell me where this getStates function come from? I seached on Google,
+  # they talked about a phylosim R package, but it don't seem it works with character type variable like col_state. Here is my gmail : hansglick@gmail.com
     
   # vector for outcomes
   outcomes <- c("heart attack", "heart failure", "pneumonia")
